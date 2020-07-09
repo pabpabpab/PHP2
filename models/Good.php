@@ -1,6 +1,5 @@
 <?php
 namespace App\models;
-use App\services\DB;
 // use App\services\TTest;
 
 class Good extends Model
