@@ -1,19 +1,16 @@
 <?php
+
 namespace App\models;
-use App\services\DB;
-// use App\services\TTest;
 
 class Good extends Model
 {
-    // use TTest;
+    public $id;
+    public $name;
+    public $price;
+    public $info;
 
-    protected $id;
-    protected $name;
-    protected $price;
-    protected $info;
-
-    protected function getTableName(): string
+    public function getTableName(): string
     {
-        return 'goods';
+        return 'products';
     }
 }

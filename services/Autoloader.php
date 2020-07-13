@@ -1,15 +1,16 @@
 <?php
-
+namespace App\services;
 
 class Autoloader
 {
-    public function loadClass($className) {
-        $tmp = str_replace(['App\\', '\\'], ['', '/'], $className);
-        $file = dirname(__DIR__) . '/' . $tmp . '.php';
+    public function loadClass($className)
+    {
+        $file = str_replace(
+                ['App\\', '\\'],
+                [dirname(__DIR__) . '/', DIRECTORY_SEPARATOR],
+                $className) . '.php';
         if (is_file($file)) {
-            include_once $file;
-            return;
+            include $file;
         }
-        exit('Не удалось подключить класс ' . $className);
     }
 }
