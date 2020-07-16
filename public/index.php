@@ -1,29 +1,29 @@
 <?php
 use App\services\Autoloader;
-use App\services\DB;
-use App\models\Good;
-use App\models\User;
 
 include dirname(__DIR__) . '/services/Autoloader.php';
 spl_autoload_register([(new Autoloader()), 'loadClass']);
 
+$controller = 'user';
+if ($_GET['c']) {
+    $controller = $_GET['c'];
+}
+
+$action = '';
+if (!empty($_GET['a'])) {
+    $action = $_GET['a'];
+}
+
+$controllerName = 'App\\controllers\\' . ucfirst($controller) . 'Controller';
+
+if (class_exists($controllerName)) {
+    /** @var \App\controllers\UserController $realController */
+    $realController = new $controllerName();
+    $content = $realController->run($action);
+    if (!empty($content)) {
+        echo $content;
+    }
+}
 
 
-$good = new Good();
-$good->name = 'мега товар';
-$good->price = 18;
-$good->info = 'супер мега товар';
-// $good->id = 43;
-$good->save();
-
-
-
-$good = new Good();
-$good->id = 48;
-$good->delete();
-
-
-$good = new Good();
-var_dump($good->getOne(7));
-var_dump($good->getAll());
 

@@ -9,7 +9,7 @@ class Good extends Model
     public $price;
     public $info;
 
-    public function getTableName(): string
+    public static function getTableName(): string
     {
         return 'products';
     }

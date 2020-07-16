@@ -6,50 +6,56 @@ use App\services\DB;
 abstract class Model
 {
     /**
-     * @var DB
-     */
-    protected $db;
-
-    /**
      * Возвращает название таблицы
      *
      * @return string
      */
-    abstract public function getTableName(): string;
+    abstract public static function getTableName(): string;
 
-    /**
-     * Model constructor.
-     */
-    public function __construct()
+    protected static function getDB()
     {
-        $this->db = DB::getInstance();
+        return DB::getInstance();
     }
 
     public function __set($name, $value){}
 
-    public function getOne($id)
+    public static function getOne($id)
     {
-        $this->db->fetchClass = get_class($this);
-        $sql = 'SELECT * FROM ' . $this->getTableName() . ' WHERE id = :id';
-        return $this->db->find($sql, [':id' => $id]);
+        $sql = 'SELECT * FROM ' . static::getTableName() . ' WHERE id = :id';
+        return static::getDB()->findObject($sql, static::class, [':id' => $id]);
     }
 
-    public function getAll()
+    public static function getAll()
     {
-        $this->db->fetchClass = get_class($this);
-        $sql = 'SELECT * FROM ' . $this->getTableName() ;
-        return $this->db->findAll($sql);
+        $sql = 'SELECT * FROM ' . static::getTableName();
+        return static::getDB()->findObjects($sql, static::class);
     }
 
-    public function delete()
+    public static function getPagesQuantity($quantityPerPage)
     {
-        $params[':id'] = $this->id;
+        $sql = 'SELECT count(*) as quantity FROM ' . static::getTableName();
+        $result = static::getDB()->find($sql);
+        return ceil($result['quantity']/$quantityPerPage);
+    }
+
+    public static function getAllByPage($pageNumber, $quantityPerPage)
+    {
+        $from = $pageNumber * $quantityPerPage - $quantityPerPage;
+        $sql = 'SELECT * FROM ' . static::getTableName() . ' LIMIT ' . $from . ' ,' . $quantityPerPage;
+        return static::getDB()->findObjects($sql, static::class);
+    }
+
+
+
+    public static function delete($id)
+    {
+        $params[':id'] = $id;
 
         $sql = 'DELETE FROM ' .
-        $this->getTableName() .
+        static::getTableName() .
         ' WHERE id = :id';
 
-        $this->db->execute($sql, $params);
+        return static::getDB()->execute($sql, $params);
     }
 
     protected function insert()
@@ -63,7 +69,7 @@ abstract class Model
             if (!in_array($key, $exept)) {
                 $fields[] = $key;
                 $pseudoVars[] = ':' . $key;
-                $params[':' . $key] = $this->$key;
+                $params[':' . $key] = $value;
             }
         }
 
@@ -73,7 +79,8 @@ abstract class Model
         'VALUES ' .
         ' (' . implode(', ', $pseudoVars) . ') ';
 
-        $this->db->execute($sql, $params);
+        static::getDB()->execute($sql, $params);
+        return static::getDB()->getInsertId(); // last id
     }
 
     protected function update()
@@ -85,7 +92,7 @@ abstract class Model
         foreach ($this as $key => $value) {
             if (!in_array($key, $exept)) {
                 $fields[] = $key . ' = :' . $key;
-                $params[':' . $key] = $this->$key;
+                $params[':' . $key] = $value;
             }
         }
 
@@ -94,7 +101,7 @@ abstract class Model
         ' SET ' . implode(', ', $fields) .
         ' WHERE id = :id';
 
-        $this->db->execute($sql, $params);
+        return static::getDB()->execute($sql, $params);
     }
 
     public function save()
@@ -104,4 +111,5 @@ abstract class Model
         }
         return $this->update();
     }
+
 }

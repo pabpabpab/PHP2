@@ -8,7 +8,6 @@ class DB
     use TSingleton;
 
     protected $connect;
-    public $fetchClass;
 
     protected $config = [
         'driver' =>  'mysql',
@@ -60,22 +59,29 @@ class DB
 
     public function find($sql, $params = [])
     {
-        if (!empty($this->fetchClass)) {
-            return $this->query($sql, $params)->fetchObject($this->fetchClass);
-        }
-
         return $this->query($sql, $params)->fetch();
     }
 
     public function findAll($sql, $params = [])
     {
-        if (!empty($this->fetchClass)) {
-            $sth = $this->query($sql, $params);
-            $sth->setFetchMode(\PDO::FETCH_CLASS, $this->fetchClass);
-            return $sth->fetchAll();
-        }
-
         return $this->query($sql, $params)->fetchAll();
+    }
+
+
+    public function findObject($sql, $class, $params = [])
+    {
+        $PDOStatement = $this->query($sql, $params);
+        $PDOStatement->setFetchMode(\PDO::FETCH_CLASS, $class);
+        return $PDOStatement->fetch();
+
+        // return $this->query($sql, $params)->fetchObject($class);
+    }
+
+    public function findObjects($sql, $class, $params = [])
+    {
+        $PDOStatement = $this->query($sql, $params);
+        $PDOStatement->setFetchMode(\PDO::FETCH_CLASS, $class);
+        return $PDOStatement->fetchAll();
     }
 
     /**
@@ -87,4 +93,10 @@ class DB
     {
         return $this->query($sql, $params);
     }
+
+    public function getInsertId()
+    {
+        return $this->getConnect()->lastInsertId();
+    }
+
 }
