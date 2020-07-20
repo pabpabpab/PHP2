@@ -1,0 +1,16 @@
+<h1>Товары</h1>
+{% for good in goods %}
+  <p>
+    <a href="/?c=good&a=one&id={{ good.id }}">
+        {{ good.name }}
+    </a>
+  </p>
+{% endfor %}
+
+<p>
+    {% for i in range(0, pagesQuantity) %}
+        <a href="/?c=good&a=all&page={{ i }}" class="page_link">
+            {{ i }}
+        </a>
+    {% endfor %}
+</p>

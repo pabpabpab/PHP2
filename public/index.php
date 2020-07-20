@@ -1,8 +1,9 @@
 <?php
-use App\services\Autoloader;
 
-include dirname(__DIR__) . '/services/Autoloader.php';
-spl_autoload_register([(new Autoloader()), 'loadClass']);
+use App\services\TwigRendererServices;
+
+require_once dirname(__DIR__) . '/vendor/autoload.php';
+
 
 $controller = 'user';
 if ($_GET['c']) {
@@ -14,16 +15,25 @@ if (!empty($_GET['a'])) {
     $action = $_GET['a'];
 }
 
+
+
 $controllerName = 'App\\controllers\\' . ucfirst($controller) . 'Controller';
+
+
+$pathToTemplates = dirname(__DIR__) . '/views/';
+$loader = new \Twig\Loader\FilesystemLoader($pathToTemplates);
+$twig = new \Twig\Environment($loader, [
+    'autoescape' => false,
+]);
+
 
 if (class_exists($controllerName)) {
     /** @var \App\controllers\UserController $realController */
-    $realController = new $controllerName();
+    $realController = new $controllerName(new TwigRendererServices($twig));
     $content = $realController->run($action);
     if (!empty($content)) {
         echo $content;
     }
 }
-
 
 
