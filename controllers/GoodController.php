@@ -2,22 +2,33 @@
 
 namespace App\controllers;
 
-use App\models\Good;
+use App\entities\Good;
+use App\repositories\GoodRepository;
+use App\services\Paginator;
+use App\services\GoodService;
+use App\services\FilesUploader;
+
 
 class GoodController extends Controller
 {
-    public $quantityPerPage = 3; // 10
+
+    protected $uploadSettings = [
+        'htmlFormImgFieldName' => 'userfile',
+        'imgFolder' => 1,
+        'imgFolderPath' => './',
+        'maxImgWeightInMb' => 10
+    ];
 
     public function allAction()
     {
-        $pageNumber = $this->getId('page');
-        if ($pageNumber == 0) $pageNumber = 1;
+        $entityName = $this->request->getControllerName();
+        $paginator = new Paginator($entityName, $this->getQuantityPerPage());
+        $paginator->setItems($this->getPage());
 
         return $this->render(
             'goods',
             [
-                'goods' => Good::getAllByPage($pageNumber, $this->quantityPerPage),
-                'pagesQuantity' => Good::getPagesQuantity($this->quantityPerPage),
+                'paginator' => $paginator
             ]
         );
     }
@@ -28,23 +39,29 @@ class GoodController extends Controller
         return $this->render(
             'good',
             [
-                'good' => Good::getOne($id),
+                'good' => (new GoodRepository())->getOne($id),
+                'goodCartCount' => (int) $this->session('goods')[$id]['count']
             ]
         );
     }
 
     public function addAction()
     {
-        return $this->render('newGoodForm', []);
+        return $this->render(
+            'addGood',
+            ['good' => new Good() ]
+        );
     }
 
     public function editAction()
     {
         $id = $this->getId();
-        $_SESSION['editedGoodId'] = $id;
-        return $this->render('editGoodForm', [
-            'good' => Good::getOne($id),
-        ]);
+        return $this->render(
+            'addGood',
+            [
+                'good' => (new GoodRepository())->getOne($id),
+            ]
+        );
     }
 
     public function saveAction()
@@ -52,74 +69,84 @@ class GoodController extends Controller
         $id = $this->getId();
         $action = ($id > 0) ? 'update' : 'insert';
 
-        $name = $_POST['name'];
-        $price = static::getNumeric($_POST['price']);
-        $info = $_POST['info'];
+        $result = (new GoodService())->save($id, $this->post(''));
 
-        $error = '';
-        if (empty($name)) {
-            $error .= 'Не указано наименование товара.<br>';
-        }
-        if (empty($price)) {
-            $error .= 'Не указана цена товара.<br>';
-        }
-        if (empty($info)) {
-            $error .= 'Не указано описание товара.<br>';
+        if (empty($result)) {
+            $this->saySaveFail($action, $id);
         }
 
-        if ($id >0 && $_SESSION['editedGoodId'] != $id) {
-            $error .= 'Страница устарела. Повторите операцию.';
-        }
-        unset($_SESSION['editedGoodId']);
-
-        if (!empty($error)) {
-            static::setMSG($error);
-            static::redirect();
-            return;
+        if ($action == 'insert') {
+            $id = $result;
         }
 
-        $good = new Good();
-        $good->name = $name;
-        $good->price = $price;
-        $good->info = $info;
-        $good->id = ($id > 0) ? $id : 0;
-
-        $msg = '';
-        $result = $good->save();
-
-        if ($action == 'update') {
-            if (!$result) {
-                $msg = 'Товар не обновился.';
+        $userImgName = $this->uploadSettings['htmlFormImgFieldName'];
+        $uploaded = $this->files($userImgName);
+        if (is_array($uploaded)) {
+            $result = $this->saveImages($uploaded, $id);
+            if ($result === 0) {
+                $this->setMSG('Ни одного фото не удалось сохранить.');
             }
+        }
+
+        $this->redirect('/good/one?id=' . $id);
+        return $result; // int
+    }
+
+
+    protected function saveImages($uploaded, $good_id)
+    {
+        $prefix = $good_id;
+
+        $uploader = new FilesUploader($this->uploadSettings);
+
+        list($correctImages, $uploadErrors) = $uploader->multipleUpload($uploaded, $prefix);
+
+        if (!empty($uploadErrors)) {
+            $this->setMSG(implode("<br>", $uploadErrors));
+        }
+
+        if (empty($correctImages)) {
+            return 0;
+        }
+
+        $imgFolder = $this->uploadSettings['imgFolder'];
+        list($successImageCount, $errors) = (new GoodService())->saveImages($good_id, $correctImages, $imgFolder);
+
+        if (!empty($errors)) {
+            $this->setMSG(implode("<br>", $errors));
+        }
+
+        return $successImageCount;
+    }
+
+    protected function saySaveFail($action, $id)
+    {
+        if ($action === 'insert') {
+            $this->setMSG('Не удалось сохранить товар.');
+            $this->redirect('/good/add');
         } else {
-            $good->id = $result;
-            if (empty($good->id)) {
-                $msg = 'Товар не добавился.';
-            }
+            $this->setMSG('Не удалось сохранить изменения.');
+            $this->redirect('/good/edit?id=' . $id);
         }
-
-        if (!empty($msg)) {
-            static::setMSG($msg);
-            static::redirect();
-            return;
-        }
-
-        static::redirect('/?c=good&a=one&id=' . $good->id);
-        return;
+        exit();
     }
 
     public function deleteAction()
     {
         $id = $this->getId();
-        if (!Good::delete($id)) {
-            static::setMSG('Ошибка удаления.');
-            static::redirect();
-            return;
+        if (!(new GoodRepository())->isExists($id)) {
+            $this->setMSG('Товар не существует.');
+            $this->redirect('');
+            return false;
         }
-
-        static::setMSG('Товар номер ' . $id . ' удален');
-        static::redirect('/?c=good&a=all');
-        return;
+        $result = (new GoodRepository())->delete($id);
+        if ($result !== 1) {
+            $this->setMSG('Не удалось удалить товар.');
+            $this->redirect('');
+            return false;
+        }
+        $this->setMSG('Товар номер ' . $id . ' удален.');
+        $this->redirect('/good/all');
+        return true;
     }
-
 }

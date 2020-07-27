@@ -1,0 +1,20 @@
+{% extends 'layouts/main.twig' %}
+
+{% block title %}
+    {{ good.name }}
+{% endblock %}
+
+{% block content %}
+    <h1>{{ good.name }}</h1>
+    <p>
+        Цена: {{ good.price }} <br>
+        Описание: {{ good.info }} <br>
+    </p>
+
+    <a href="/cart/add?id={{ good.id }}">Добавить в корзину ({{ goodCartCount }})</a><br>
+    <a href="/good/edit?id={{ good.id }}">Редактировать</a><br>
+    <a href="/good/delete?id={{ good.id }}">Удалить</a>
+{% endblock %}
+
+
+

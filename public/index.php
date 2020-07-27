@@ -1,39 +1,28 @@
 <?php
-
+// use App\services\Autoloader;
+// use App\services\NewException;
 use App\services\TwigRendererServices;
+use App\services\Request;
+
 
 require_once dirname(__DIR__) . '/vendor/autoload.php';
 
+$request = new Request();
 
-$controller = 'user';
-if ($_GET['c']) {
-    $controller = $_GET['c'];
-}
-
-$action = '';
-if (!empty($_GET['a'])) {
-    $action = $_GET['a'];
-}
-
-
-
-$controllerName = 'App\\controllers\\' . ucfirst($controller) . 'Controller';
-
-
-$pathToTemplates = dirname(__DIR__) . '/views/';
-$loader = new \Twig\Loader\FilesystemLoader($pathToTemplates);
-$twig = new \Twig\Environment($loader, [
-    'autoescape' => false,
-]);
-
+$controllerName = $request->getFullControllerName();
 
 if (class_exists($controllerName)) {
-    /** @var \App\controllers\UserController $realController */
-    $realController = new $controllerName(new TwigRendererServices($twig));
-    $content = $realController->run($action);
+    $realController = new $controllerName(
+        new TwigRendererServices(),
+        $request
+    );
+    $content = $realController->run($request->getActionName());
     if (!empty($content)) {
         echo $content;
     }
+} else {
+    echo "Не найден класс " . $controllerName;
 }
+
 
 

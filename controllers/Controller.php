@@ -1,18 +1,32 @@
 <?php
 
-
 namespace App\controllers;
 
 
+use App\services\IRenderer;
+use App\services\Request;
+use App\traits\MsgMaker;
+use App\traits\Redirect;
+
 abstract class Controller
 {
+    use MsgMaker;
+    use Redirect;
+
     protected $action;
     protected $actionDefault = 'all';
 
+    protected $renderer;
+    protected $request;
+
+    public function __construct(IRenderer $renderer, Request $request)
+    {
+        $this->renderer = $renderer;
+        $this->request = $request;
+    }
+
     public function run($action)
     {
-        session_start();
-
         $this->action = $action;
         if (empty($this->action)) {
             $this->action = $this->actionDefault;
@@ -28,64 +42,36 @@ abstract class Controller
 
     public function render($template, $params = [])
     {
-        $content = $this->rendererTmpl($template, $params);
-        return $this->rendererTmpl(
-            'layouts/main',
-            [
-                'content' => $content,
-                'msg' => static::getMSG(),
-            ]
-        );
+        return $this->renderer->render($template, $params);
     }
 
-    public function rendererTmpl($template, $params = [])
+    protected function getId()
     {
-        ob_start();
-        extract($params);
-        include dirname(__DIR__) . '/views/' . $template . '.php';
-        return ob_get_clean();
+        return $this->request->getId();
     }
 
-
-
-    protected static function getId($key = 'id')
+    protected function getPage()
     {
-        if (!empty((int)$_GET[$key])) {
-            return (int) $_GET[$key];
-        }
-        return 0;
+        return $this->request->getPage();
     }
 
-    protected static function setMSG($msg) {
-        $_SESSION['msg'] = $msg;
+    protected function getQuantityPerPage()
+    {
+        return $this->request->getQuantityPerPage();
     }
 
-    protected static function getMSG() {
-        $msg = '';
-        if (!empty($_SESSION['msg'])) {
-            $msg = $_SESSION['msg'];
-            unset($_SESSION['msg']);
-        }
-        return $msg;
+    protected function post($key)
+    {
+        return $this->request->post($key);
     }
 
-    protected static function redirect($path = '') {
-        if (!empty($path)) {
-            header("location: {$path}");
-            return;
-        }
-        if (isset($_SERVER['HTTP_REFERER'])) {
-            header("location: {$_SERVER['HTTP_REFERER']}");
-            return;
-        }
-        header("location: /");
+    protected function session($key)
+    {
+        return $this->request->session($key);
     }
 
-    protected static function getNumeric($input) {
-        if (is_numeric($input)) {
-            return $input + 0;
-        }
-        return 0;
+    protected function files($key)
+    {
+        return $this->request->files($key);
     }
-
 }

@@ -67,14 +67,11 @@ class DB
         return $this->query($sql, $params)->fetchAll();
     }
 
-
     public function findObject($sql, $class, $params = [])
     {
         $PDOStatement = $this->query($sql, $params);
         $PDOStatement->setFetchMode(\PDO::FETCH_CLASS, $class);
         return $PDOStatement->fetch();
-
-        // return $this->query($sql, $params)->fetchObject($class);
     }
 
     public function findObjects($sql, $class, $params = [])

@@ -1,16 +1,25 @@
-<h1>Товары</h1>
-{% for good in goods %}
-  <p>
-    <a href="/?c=good&a=one&id={{ good.id }}">
-        {{ good.name }}
-    </a>
-  </p>
-{% endfor %}
+{% extends 'layouts/main.twig' %}
 
-<p>
-    {% for i in range(0, pagesQuantity) %}
-        <a href="/?c=good&a=all&page={{ i }}" class="page_link">
-            {{ i }}
-        </a>
+{% block title %}
+    Каталог товаров
+{% endblock %}
+
+{% block content %}
+    <h1>Товары</h1>
+    {% for good in paginator.getItems() %}
+        <p>
+            <a href="/good/one?id={{ good.id }}">
+                {{ good.name }}
+            </a>
+        </p>
+    {% else %}
+        Нет товаров
     {% endfor %}
-</p>
+
+    <div>
+        {% for page, url in paginator.getUrls() %}
+            <a href="{{ url }}" class="page_link">{{ page }}</a>
+        {% endfor %}
+    </div>
+{% endblock %}
+

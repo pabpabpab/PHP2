@@ -1,0 +1,46 @@
+{% extends 'layouts/main.twig' %}
+
+{% block title %}
+    Корзина
+{% endblock %}
+
+{% block content %}
+<h1>Корзина</h1>
+   <form method='post' action='/cart/save'>
+       <table class='cart'>
+       {% for id, good in cart.goods %}
+        <tr>
+            <td>
+                <div class='cart_product'>
+                    <div><a href='/good/one?id={{ id }}' class='catalog_name_link'>{{ good.name }}</a></div>
+                    <div class='catalog_price'>{{ good.price }}&#8381;</div>
+                </div>
+            </td>
+            <td>
+                <input type='text' name='goodsCount[{{ id }}]' value='{{ good.count }}' class='cart_input'>
+            </td>
+            <td>
+                {{ good.totalPrice }}&#8381;
+            </td>
+            <td>
+                <a href='/cart/delete?id={{ id }}' class='catalog_name_link'>Удалить</a>
+            </td>
+        </tr>
+       {% else %}
+        <tr><td>Корзина пуста.</td></tr>
+       {% endfor %}
+       </table>
+
+       <div>
+        {% if cart.count %}
+            <div class='totalPrice'>
+               Итого: {{ cart.totalPrice }}&#8381;
+            </div>
+            <div class='cart_bottom'>
+               <input type='submit' name='saveChanges' value='Сохранить изменения' class='order_submit'>
+            </div>
+        {% endif %}
+       </div>
+   </form>
+{% endblock %}
+

@@ -1,0 +1,28 @@
+{% extends 'layouts/main.twig' %}
+
+{% block title %}
+    {% if good.id %}
+        Редактировать товар
+    {% else %}
+        Добавить товар
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    {% if good.id %}
+        <h1>Редактировать товар</h1>
+    {% else %}
+        <h1>Добавить товар</h1>
+    {% endif %}
+    <form enctype='multipart/form-data' method='post' action='/good/save?id={{ good.id }}'>
+        <input type='text' placeholder='наименование товара' name='name' value='{{ good.name }}' class='field'><br><br>
+        <input type='text' placeholder='цена товара' name='price' value='{{ good.price }}' class='field'><br><br>
+        <textarea placeholder='описание товара' name='info' class='field'>{{ good.info }}</textarea><br><br>
+        {% if not good.id %}
+           <div class='hint'>можно выбрать несколько фото</div>
+           <input type='file' name='userfile[]' multiple class='field'><br><br>
+        {% endif %}
+        <input type='submit' name='save' class='field'>
+    </form>
+{% endblock %}
+
