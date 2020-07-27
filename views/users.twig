@@ -1,0 +1,22 @@
+{% extends 'layouts/main.twig' %}
+
+
+{% block content %}
+
+    <h1>Пользователи</h1>
+    {%  for user in paginator.getItems()  %}
+        <p>
+            <a href="/user/one?id={{user.id}}">
+                {{user.fio}}
+            </a>
+            <a href="/user/del?id={{user.id}}">
+                delete
+            </a>
+        </p>
+        <hr>
+    {% endfor %}
+
+    {#<?php foreach ($paginator->getUrls() as $page=>$urls) :?>#}
+    {#    <a href="<?= $urls?>"><?= $page?></a>#}
+    {#<?php endforeach;?>#}
+{% endblock %}
