@@ -33,9 +33,9 @@ class FilesUploader
         'image/webp' => 'webp'
     ];
 
-    public function __construct($uploadSettings)
+    public function __construct(array $config)
     {
-        $this->uploadSettings = $uploadSettings;
+        $this->uploadSettings = $config;
     }
 
     public function multipleUpload($uploaded, $prefix)

@@ -6,20 +6,35 @@
 
 {% block content %}
     <h1>Товары</h1>
+
+    <div class='catalog'>
     {% for good in paginator.getItems() %}
-        <p>
-            <a href="/good/one?id={{ good.id }}">
-                {{ good.name }}
-            </a>
-        </p>
+        <div class='catalog_item'>
+            <div>
+               <a href="/good/one?id={{ good.id }}" class='catalog_name_link'>
+                  {{ good.name }}
+               </a>
+            </div>
+            {% if good.number_of_images > 0 %}
+                <a href='/good/one?id={{ good.id }}'>
+                    <img src='{{ imgPath }}/{{ good.img_folder }}/{{ good.main_img_name }}' class='small_img'>
+                </a>
+            {% endif %}
+            <div class='catalog_price'>
+                {{ good.price }}&#8381;
+            </div>
+        </div>
     {% else %}
         Нет товаров
     {% endfor %}
-
-    <div>
-        {% for page, url in paginator.getUrls() %}
-            <a href="{{ url }}" class="page_link">{{ page }}</a>
-        {% endfor %}
     </div>
+
+    {% if paginator.getUrls() %}
+       <div class="paginator">
+           {% for page, url in paginator.getUrls() %}
+               <a href="{{ url }}" class="page_link">{{ page }}</a>
+           {% endfor %}
+       </div>
+    {% endif %}
 {% endblock %}
 

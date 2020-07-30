@@ -11,11 +11,10 @@ class CartController extends Controller
 {
     public function allAction()
     {
-        $cart = new Cart($this->request);
         return $this->render(
             'cart',
             [
-                'cart' => $cart
+                'cart' => $this->app->cart
             ]
         );
     }
@@ -23,7 +22,7 @@ class CartController extends Controller
     public function addAction()
     {
         $id = $this->getId();
-        $result = (new Cart($this->request))->add($id);
+        $result = $this->app->cart->add($id);
         if (!$result) {
             $this->setMSG('Товар не добавился в корзину.');
         }
@@ -34,7 +33,7 @@ class CartController extends Controller
     public function deleteAction()
     {
         $id = $this->getId();
-        $result = (new Cart($this->request))->delete($id);
+        $result = $this->app->cart->delete($id);
         if (!$result) {
             $this->setMSG('Ошибка удаления товара из корзины.');
         }
@@ -44,7 +43,7 @@ class CartController extends Controller
 
     public function saveAction()
     {
-        $result = (new Cart($this->request))->save($this->post('goodsCount'));
+        $result = $this->app->cart->save($this->post('goodsCount'));
         if (!$result) {
             $this->setMSG('Изменения не сохранены.');
         }

@@ -3,15 +3,17 @@
 namespace App\controllers;
 
 use App\entities\User;
-use App\services\PaginatorServices;
+use App\services\Paginator;
 
 class UserController extends Controller
 {
     public function allAction()
     {
-        $paginator = new PaginatorServices();
-        $user = new User();
-        $paginator->setItems($user, $this->getPage());
+        $entityName = $this->request->getControllerName();
+
+        $paginator = $this->app->paginator;
+        $paginator->setItems($entityName, $this->getQuantityPerPage(), $this->getPage());
+
         return $this->render(
             'users',
             [
@@ -26,17 +28,8 @@ class UserController extends Controller
         return $this->render(
             'user',
             [
-                'user' => User::getOne($id),
+                'user' => $this->app->userRepository()->getOneWithImages($id),
             ]
         );
-    }
-
-    public function delAction()
-    {
-        $id = $this->getId();
-        /** @var User $user */
-        $user = User::getOne($id);
-        $user->delete();
-        header("Location: /");
     }
 }

@@ -5,18 +5,14 @@ use App\traits\TSingleton;
 
 class DB
 {
-    use TSingleton;
+    protected $container;
 
-    protected $connect;
+    protected $config = [];
 
-    protected $config = [
-        'driver' =>  'mysql',
-        'host' =>  'localhost',
-        'dbname' =>  'gbshop',
-        'charset' =>  'UTF8',
-        'user' => 'root',
-        'password' => 'root'
-    ];
+    public function __construct(array $config)
+    {
+        $this->config = $config;
+    }
 
     protected function getConnect()
     {
@@ -34,6 +30,7 @@ class DB
         return $this->connect;
     }
 
+
     private function getPrepareDsnString()
     {
         return sprintf(
@@ -45,11 +42,6 @@ class DB
         );
     }
 
-    /**
-     * @param $sql
-     * @param array $params
-     * @return bool|\PDOStatement
-     */
     protected function query($sql, $params = [])
     {
         $PDOStatement = $this->getConnect()->prepare($sql);
@@ -81,14 +73,9 @@ class DB
         return $PDOStatement->fetchAll();
     }
 
-    /**
-     * @param $sql
-     * @param array $params
-     * @return bool|\PDOStatement
-     */
     public function execute($sql, $params = [])
     {
-        return $this->query($sql, $params);
+        return $this->query($sql, $params); // @return \PDOStatement
     }
 
     public function getInsertId()

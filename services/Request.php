@@ -90,12 +90,17 @@ class Request
         return $this->params['post'][$key];
     }
 
-    public function session($key = '')
+    public function session($key = '', $defaultValue = null)
     {
         if (empty($key)) {
             return $this->params['session'];
         }
-        return $this->params['session'][$key];
+
+        if (!empty($this->params['session'][$key])) {
+            return $this->params['session'][$key];
+        }
+
+        return $defaultValue;
     }
 
     public function setSession($key, $value)
@@ -104,12 +109,24 @@ class Request
        $this->params['session'] = $_SESSION;
     }
 
-    public function files($key = '')
+    public function files($key = '', $defaultValue = null)
     {
         if (empty($key)) {
             return $this->params['files'];
         }
-        return $this->params['files'][$key];
+
+        if (!empty($this->params['files'][$key])) {
+            return $this->params['files'][$key];
+        }
+
+        return $defaultValue;
+    }
+
+    // не используется, оставлю для примера
+    public function getResponse($data)
+    {
+        header('Content-Type: application/json');
+        return json_encode($data);
     }
 
 }

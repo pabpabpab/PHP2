@@ -3,19 +3,17 @@
 
 namespace App\services;
 
-use App\entities\Good;
-use App\repositories\GoodRepository;
+use \App\engine\App;
 
-class Cart
+
+class Cart extends Service
 {
     public $goods = [];
     public $count = 0;
     public $totalPrice = 0;
-    protected $request;
 
-    public function __construct($request)
+    public function __construct()
     {
-       $this->request = $request;
        if (is_array($this->session('goods'))) {
            $this->goods = $this->session('goods');
        }
@@ -30,7 +28,7 @@ class Cart
             return false;
         }
 
-        $good = (new GoodRepository())->getOne($id);
+        $good = $this->container->goodRepository->getOne($id);
 
         if (!is_array($this->goods[$id])) {
             $this->goods[$id]['name'] = $good->name;
@@ -103,19 +101,27 @@ class Cart
         return $count;
     }
 
+    protected function isGoodExists($id)
+    {
+        return $this->container->goodRepository->isExists($id);
+    }
+
     protected function setSession()
     {
-        $this->request->setSession('goods', $this->goods);
-        $this->request->setSession('cartCount', $this->getCount());
+        $this->container->request->setSession('goods', $this->goods);
+        $this->container->request->setSession('cartCount', $this->getCount());
     }
 
     protected function session($key)
     {
-        return $this->request->session($key);
-    }
-
-    protected function isGoodExists($id)
-    {
-        return (new GoodRepository())->isExists($id);
+        /*
+         * данный метод вызывается из конструктора,         *
+         * который в свою очередь вызывается в Container при создании объекта типа Cart,
+         * при этом метод setContainer для Cart еще не вызван,
+         * и свойство container не установлено,
+         * поэтому здесь применяю такой способ получения объекта request.
+        */
+        $request = App::call()->request;
+        return $request->session($key);
     }
 }

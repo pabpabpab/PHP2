@@ -8,7 +8,7 @@ use App\traits\MsgMaker;
 use App\traits\Redirect;
 use App\traits\DataValidator;
 
-class GoodService
+class GoodService extends Service
 {
     use MsgMaker;
     use Redirect;
@@ -17,7 +17,7 @@ class GoodService
     public function save($id, $data)
     {
         if (!empty($id)) {
-            if (!(new GoodRepository())->isExists($id)) {
+            if (!$this->container->goodRepository->isExists($id)) {
                 $this->setMSG('Товар не существует.');
                 $this->redirect('');
                 exit();
@@ -37,7 +37,7 @@ class GoodService
         $good->name = $data['name'];
         $good->info = $data['info'];
         $good->price = $data['price'];
-        return (new GoodRepository())->save($good);
+        return $this->container->goodRepository->save($good);
     }
 
     protected function checkData($data)
@@ -61,7 +61,7 @@ class GoodService
         $insertErrorCount = 0;
         $successImages = [];
         foreach ($images as $imgName) {
-            $result = (new GoodRepository())->insertImage($good_id, $imgName);
+            $result = $this->container->goodRepository->insertImage($good_id, $imgName);
             if (empty($result)) {
                 $insertErrorCount++;
                 continue;
@@ -79,7 +79,7 @@ class GoodService
 
         $successImageCount = count($successImages);
         $mainImage = $successImages[0];
-        $result = (new GoodRepository())->updateGoodByImagesInfo($good_id, $imgFolder, $mainImage, $successImageCount);
+        $result = $this->container->goodRepository->updateGoodByImagesInfo($good_id, $imgFolder, $mainImage, $successImageCount);
         if ($result !== 1) {
             $errors[] = 'Не удалось сохранить в таблице товара данные о фото.';
             $successImageCount = 0;

@@ -21,7 +21,28 @@ class GoodRepository extends Repository
         return Good::class;
     }
 
-    public function insertImage($good_id, $imgName)
+    public function getOneWithImages($goodId)
+    {
+        $good = $this->getOne($goodId);
+
+        $result = $this->getImages($goodId);
+        $images = [];
+        foreach ($result as $item) {
+            $images[] = $item['img_name_info'];
+        }
+
+        $good->images = $images;
+        return $good;
+    }
+
+
+    protected function getImages($goodId)
+    {
+        $sql = 'SELECT * FROM ' . $this->getImagesTableName() . ' WHERE product_id = :id';
+        return $this->getDB()->findAll($sql, [':id' => $goodId]);
+    }
+
+    public function insertImage($goodId, $imgName)
     {
         $sql = sprintf(
             "INSERT INTO %s (%s) VALUES (%s)",
@@ -29,14 +50,14 @@ class GoodRepository extends Repository
             'product_id, img_name_info',
             ':product_id, :img_name_info'
         );
-        $params = [':product_id' => $good_id, ':img_name_info' => $imgName];
-        static::getDB()->execute($sql, $params);
-        return static::getDB()->getInsertId(); // last id
+        $params = [':product_id' => $goodId, ':img_name_info' => $imgName];
+        $this->getDB()->execute($sql, $params);
+        return $this->getDB()->getInsertId(); // last id
     }
 
-    public function updateGoodByImagesInfo($good_id, $imgFolder, $mainImage, $imageCount)
+    public function updateGoodByImagesInfo($goodId, $imgFolder, $mainImage, $imageCount)
     {
-        $params[':id'] = $good_id;
+        $params[':id'] = $goodId;
 
         $columns = [
             'img_folder = :img_folder',
@@ -54,10 +75,10 @@ class GoodRepository extends Repository
             ':img_folder' => $imgFolder,
             ':number_of_images' => $imageCount,
             ':main_img_name' => $mainImage,
-            ':id' => $good_id
+            ':id' => $goodId
         ];
 
-        $pdoStatement = static::getDB()->execute($sql, $params);
+        $pdoStatement = $this->getDB()->execute($sql, $params);
         return $pdoStatement->rowCount(); // number of affected rows
     }
 }

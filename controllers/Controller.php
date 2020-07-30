@@ -3,7 +3,7 @@
 namespace App\controllers;
 
 
-use App\services\IRenderer;
+use App\engine\App;
 use App\services\Request;
 use App\traits\MsgMaker;
 use App\traits\Redirect;
@@ -16,12 +16,13 @@ abstract class Controller
     protected $action;
     protected $actionDefault = 'all';
 
-    protected $renderer;
+    protected $app;
     protected $request;
 
-    public function __construct(IRenderer $renderer, Request $request)
+
+    public function __construct(App $app, Request $request)
     {
-        $this->renderer = $renderer;
+        $this->app = $app;
         $this->request = $request;
     }
 
@@ -42,7 +43,7 @@ abstract class Controller
 
     public function render($template, $params = [])
     {
-        return $this->renderer->render($template, $params);
+        return $this->app->renderer->render($template, $params);
     }
 
     protected function getId()

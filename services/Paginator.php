@@ -6,23 +6,23 @@ namespace App\services;
 use App\repositories\GoodRepository as GoodRepository;
 use App\repositories\UserRepository;
 
-class Paginator
+class Paginator extends Service
 {
     protected $items = [];
     protected $baseRoute;
     protected $quantityPerPage;
-    protected $repositoryName;
+    protected $repository;
 
-    public function __construct($entityName, $quantityPerPage)
+    public function setItems($entityName, $quantityPerPage, $pageNumber = 1)
     {
-        $this->quantityPerPage = $quantityPerPage;
-        $this->repositoryName = 'App\\repositories\\' . ucfirst($entityName) . 'Repository';
         $this->baseRoute = "/{$entityName}/all";
-    }
 
-    public function setItems($pageNumber = 1)
-    {
-        $this->items = (new $this->repositoryName())->getAllByPage($pageNumber, $this->quantityPerPage);
+        $repositoryName = $entityName . 'Repository';
+        $this->repository = $this->container->$repositoryName;
+
+        $this->quantityPerPage = $quantityPerPage;
+
+        $this->items = $this->repository->getAllByPage($pageNumber, $quantityPerPage);
     }
 
     public function getItems(): array
@@ -32,7 +32,7 @@ class Paginator
 
     public function getUrls()
     {
-        $pagesQuantity = (new $this->repositoryName())->getPagesQuantity($this->quantityPerPage);
+        $pagesQuantity = $this->repository->getPagesQuantity($this->quantityPerPage);
 
         $urls = [];
         for ($i = 1; $i <= $pagesQuantity; $i++) {
