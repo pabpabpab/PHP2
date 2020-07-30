@@ -1,0 +1,27 @@
+{% extends 'layouts/main.twig' %}
+
+{% block title %}
+    {{ good.name }}
+{% endblock %}
+
+{% block content %}
+    <h1>{{ good.name }}</h1>
+    {% if good.images %}
+       <div class='product_img_div'>
+          {% for image in good.images %}
+              <img src='{{ imgPath }}/{{ good.img_folder }}/{{ image }}' class='small_img'>
+          {% endfor %}
+       </div>
+    {% endif %}
+    <div>
+        Цена: {{ good.price }} <br>
+        Описание: {{ good.info }} <br>
+    </div>
+
+    <a href="/cart/add?id={{ good.id }}">Добавить в корзину ({{ goodCartCount }})</a><br>
+    <a href="/good/edit?id={{ good.id }}">Редактировать</a><br>
+    <a href="/good/delete?id={{ good.id }}">Удалить</a>
+{% endblock %}
+
+
+
